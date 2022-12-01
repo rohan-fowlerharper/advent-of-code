@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "setup": "deno run --allow-write setup.ts",
+    "setup": "deno run --allow-write --allow-read setup.ts",
     "out": "deno run --allow-run out.ts",
     "o": "deno run --allow-run out.ts"
   }
