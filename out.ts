@@ -10,5 +10,5 @@ const day = format(new Date(), 'd')
 const dir = day.padStart(2, '0')
 
 await Deno.run({
-  cmd: ['deno', 'run', '--allow-read', `./${dir}/${file}.ts`],
+  cmd: ['deno', 'run', '--allow-read', '--watch', `./${dir}/${file}.ts`],
 }).status()
