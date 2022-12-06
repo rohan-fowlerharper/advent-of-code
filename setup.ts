@@ -1,8 +1,7 @@
 import { format } from 'https://deno.land/std@0.91.0/datetime/mod.ts'
 
-const day = format(new Date(), 'd')
-
-const dir = day.padStart(2, '0')
+const [day, year] = format(new Date(), 'd,yyyy').split(',')
+const dir = `${year}/${day.padStart(2, '0')}`
 
 const encoder = new TextEncoder()
 const data =

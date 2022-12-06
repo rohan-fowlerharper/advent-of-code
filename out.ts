@@ -6,8 +6,8 @@ if (!file || (file !== '1' && file !== '2')) {
   Deno.exit(1)
 }
 
-const day = format(new Date(), 'd')
-const dir = day.padStart(2, '0')
+const [day, year] = format(new Date(), 'd,yyyy').split(',')
+const dir = `${year}/${day.padStart(2, '0')}`
 
 await Deno.run({
   cmd: ['deno', 'run', '--allow-read', '--watch', `./${dir}/${file}.ts`],
