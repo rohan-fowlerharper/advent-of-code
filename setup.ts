@@ -1,6 +1,15 @@
 import { format } from 'https://deno.land/std@0.91.0/datetime/mod.ts'
 
-const [day, year] = format(new Date(), 'd,yyyy').split(',')
+let [day, year] = format(new Date(), 'd,yyyy').split(',')
+
+if (Deno.args[0] && Deno.args[1]) {
+  year = Deno.args[0]
+  day = Deno.args[1]
+} else if (Deno.args[0] || Deno.args[1]) {
+  console.log('Invalid arguments')
+  Deno.exit(1)
+}
+
 const dir = `${year}/${day.padStart(2, '0')}`
 
 const encoder = new TextEncoder()
