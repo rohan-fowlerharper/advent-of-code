@@ -16,13 +16,13 @@ const dirs = {
 type Direction = keyof typeof dirs
 type Point = { x: number; y: number }
 
-const h = { x: 0, y: 0 } as { x: number; y: number }
-const t = { x: 0, y: 0 } as { x: number; y: number }
+const h: Point = { x: 0, y: 0 }
+const t: Point = { x: 0, y: 0 }
 
 const visited = new Set<string>()
 
 for (const line of lines) {
-  const [dir, num] = line.split(' ') as ['U' | 'D' | 'L' | 'R', string]
+  const [dir, num] = line.split(' ') as [Direction, string]
   const n = Number(num)
   const [x, y] = dirs[dir] as [number, number]
 
