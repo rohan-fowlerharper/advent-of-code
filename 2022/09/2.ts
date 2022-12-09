@@ -45,7 +45,7 @@ for (const line of lines) {
       /*
         T.H.. -> .TH..
       */
-      if (prev.x === t.x) {
+      if (dx === 0) {
         t.y = (prev.y + t.y) / 2
         continue
       }
@@ -54,7 +54,7 @@ for (const line of lines) {
         ..... -> ..T..
         ..T..    .....
       */
-      if (prev.y === t.y) {
+      if (dy === 0) {
         t.x = (prev.x + t.x) / 2
         continue
       }
