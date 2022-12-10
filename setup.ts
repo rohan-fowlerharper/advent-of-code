@@ -20,7 +20,7 @@ const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
 )
 
-const lines = input.split('\\n')
+const lines = input.trimEnd().split('\\n')
 `)
 
 await Deno.mkdir(dir)
