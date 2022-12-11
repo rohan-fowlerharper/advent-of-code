@@ -15,17 +15,9 @@ const monkeys = input
 
     return {
       num: i,
-      startingItems: lStartingItems.split(': ')[1].split(', ').map(BigInt),
-      operation: lOperation
-        .split('new = ')[1]
-        .split(' ')
-        .map((c) => {
-          if (Number(c)) return `${c}n`
-          if (c === 'old') return '_old'
-          return c
-        })
-        .join(''),
-      test: BigInt(Number(lTest.split(' ').at(-1))),
+      startingItems: lStartingItems.split(': ')[1].split(', ').map(Number),
+      operation: lOperation.split('new = ')[1].replaceAll('old', '_old'),
+      test: Number(lTest.split(' ').at(-1)),
       ifTrue: Number(ifTrue.split(' ').at(-1)),
       ifFalse: Number(ifFalse.split(' ').at(-1)),
       inspections: 0,
@@ -41,11 +33,11 @@ for (let round = 1; round <= 10000; round++) {
       monkey.inspections++
       const _old = monkey.startingItems.shift()
 
-      let newWorryLevel = eval(operation) as bigint
+      let newWorryLevel = eval(operation)
       newWorryLevel %= divisor
 
       let nextMonkey = monkeys[ifFalse]
-      if (newWorryLevel % test === 0n) {
+      if (newWorryLevel % test === 0) {
         nextMonkey = monkeys[ifTrue]
       }
       nextMonkey.startingItems.push(newWorryLevel)
