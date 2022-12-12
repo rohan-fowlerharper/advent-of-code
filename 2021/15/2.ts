@@ -23,8 +23,6 @@ const dirs: { x: number; y: number }[] = [
   { x: -1, y: 0 },
 ]
 
-const _string = ({ x, y }: { x: number; y: number }) => `${x},${y}`
-
 const getDirs = ({ x, y }: Coord) =>
   dirs.map((dir) => ({
     x: x + dir.x,
@@ -77,11 +75,9 @@ grid[0][0].totalCost = 0
 const start: Coord = { x: 0, y: 0 }
 
 const pq = new PriorityQueue([start, 0])
-const visited = new Set<string>()
 
 while (pq.length > 0) {
   const [coord] = pq.shift()!
-  if (visited.has(_string(coord))) continue
 
   const node = grid[coord.y][coord.x]
 
@@ -92,12 +88,9 @@ while (pq.length > 0) {
     const newCost = node.totalCost + newNode.cost
     if (newCost < newNode.totalCost) {
       newNode.totalCost = newCost
+      pq.push({ x, y }, newNode.totalCost)
     }
-
-    pq.push({ x, y }, newNode.totalCost)
   }
-
-  visited.add(_string(coord))
 }
 
 console.log(grid.at(-1)!.at(-1)!.totalCost)
