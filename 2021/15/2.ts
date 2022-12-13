@@ -38,8 +38,17 @@ class PriorityQueue {
   }
 
   push(point: Coord, priority: number) {
+    if (this.q.length === 0) {
+      this.q.push([point, priority])
+      return
+    }
+    for (let i = 0; i < this.q.length; i++) {
+      if (priority <= this.q[i][1]) {
+        this.q.splice(i, 0, [point, priority])
+        return
+      }
+    }
     this.q.push([point, priority])
-    this.q.sort(([, a], [, b]) => a - b)
   }
 
   shift() {
