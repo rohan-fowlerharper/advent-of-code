@@ -15,21 +15,18 @@ const pointSets = lines.map((l) =>
   })
 )
 
-let minX = Math.min(...pointSets.flat().map((p) => p.x))
-const minY = 0
+const minX = Math.min(...pointSets.flat().map((p) => p.x))
 const maxX = Math.max(...pointSets.flat().map((p) => p.x))
+const minY = 0
 const maxY = Math.max(...pointSets.flat().map((p) => p.y))
 
 const floor = maxY + 2
 
-let width = maxX - minX + 1
-const height = floor + 1
-
-const grid: string[][] = Array.from({ length: height }, () =>
-  Array.from({ length: width }, () => '.')
+const grid: string[][] = Array.from({ length: floor + 1 }, () =>
+  Array.from({ length: maxX - minX + 1 }, () => '.')
 )
 
-grid.at(-1)!.fill('#')
+grid.at(floor)!.fill('#')
 
 for (const points of pointSets) {
   for (let i = 0, j = 1; j < points.length; i++, j++) {
@@ -50,46 +47,36 @@ for (const points of pointSets) {
 
 const logGrid = () => console.log(grid.map((r) => r.join(' ')).join('\n'))
 
-sand: while (true) {
-  const sand: Point = { x: 500 - minX, y: 0 }
+const source: Point = { x: 500 - minX, y: 0 }
+while (true) {
+  const sand = { ...source }
 
   if (grid[sand.y][sand.x] === 'o') {
     break
   }
 
-  down: while (true) {
+  while (true) {
     if (sand.x - 1 < 0) {
-      grid.forEach((r) => r.unshift('.'))
-      grid.at(-1)![0] = '#'
+      grid.forEach((r, i) => (i === floor ? r.unshift('#') : r.unshift('.')))
       sand.x++
-      minX--
-      width++
-    }
-    if (sand.x + 1 >= width) {
-      grid.forEach((r) => r.push('.'))
-      grid.at(-1)![grid.at(-1)!.length - 1] = '#'
+      source.x++
+    } else if (sand.x + 1 >= grid[sand.y].length) {
+      grid.forEach((r, i) => (i === floor ? r.push('#') : r.push('.')))
       sand.x--
-      width++
     }
 
     if (grid[sand.y + 1][sand.x] === '.') {
       sand.y++
-      continue down
-    }
-
-    if (grid[sand.y + 1][sand.x - 1] === '.') {
+    } else if (grid[sand.y + 1][sand.x - 1] === '.') {
       sand.x--
       sand.y++
-
-      continue down
-    }
-    if (grid[sand.y + 1][sand.x + 1] === '.') {
+    } else if (grid[sand.y + 1][sand.x + 1] === '.') {
       sand.x++
       sand.y++
-      continue down
+    } else {
+      grid[sand.y][sand.x] = 'o'
+      break
     }
-    grid[sand.y][sand.x] = 'o'
-    continue sand
   }
 }
 

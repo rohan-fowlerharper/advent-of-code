@@ -20,11 +20,8 @@ const minY = 0
 const maxX = Math.max(...pointSets.flat().map((p) => p.x))
 const maxY = Math.max(...pointSets.flat().map((p) => p.y))
 
-const width = maxX - minX + 1
-const height = maxY - minY + 1
-
-const grid: string[][] = Array.from({ length: height }, () => {
-  return Array.from({ length: width }, () => '.')
+const grid: string[][] = Array.from({ length: maxY - minY + 1 }, () => {
+  return Array.from({ length: maxX - minX + 1 }, () => '.')
 })
 
 const spawn: Point = { x: 500 - minX, y: 0 }
@@ -39,9 +36,9 @@ for (const points of pointSets) {
     const xStep = dx / steps
     const yStep = dy / steps
     for (let k = 0; k <= steps; k++) {
-      const x = Math.round(p1.x + xStep * k)
-      const y = Math.round(p1.y + yStep * k)
-      grid[y - minY][x - minX] = '#'
+      const x = Math.round(p1.x + xStep * k) - minX
+      const y = Math.round(p1.y + yStep * k) - minY
+      grid[y][x] = '#'
     }
   }
 }
@@ -51,31 +48,27 @@ const logGrid = () => console.log(grid.map((r) => r.join(' ')).join('\n'))
 sand: while (true) {
   const sand = { ...spawn }
 
-  down: while (true) {
-    if (sand.x - 1 < 0 || sand.x + 1 >= width || sand.y + 1 >= height) {
+  while (true) {
+    if (
+      sand.x - 1 < 0 ||
+      sand.x + 1 >= grid[sand.y].length ||
+      sand.y + 1 >= grid.length
+    ) {
       break sand
     }
 
     if (grid[sand.y + 1][sand.x] === '.') {
       sand.y++
-      continue down
-    }
-
-    if (grid[sand.y + 1][sand.x - 1] === '.') {
+    } else if (grid[sand.y + 1][sand.x - 1] === '.') {
       sand.x--
       sand.y++
-
-      continue down
-    }
-
-    if (grid[sand.y + 1][sand.x + 1] === '.') {
+    } else if (grid[sand.y + 1][sand.x + 1] === '.') {
       sand.x++
       sand.y++
-      continue down
+    } else {
+      grid[sand.y][sand.x] = 'o'
+      break
     }
-
-    grid[sand.y][sand.x] = 'o'
-    continue sand
   }
 }
 
