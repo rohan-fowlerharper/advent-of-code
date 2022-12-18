@@ -75,7 +75,15 @@ const operableValves = new Set<string>(
     .map((v) => v[0])
 )
 
-type Thing = typeof startingCondition
+for (const valve of valves.values()) {
+  for (const n in valve.neighbours) {
+    if (!operableValves.has(n)) {
+      delete valve.neighbours[n]
+    }
+  }
+}
+
+type Path = typeof startingCondition
 const startingCondition = {
   name: 'AA',
   pressure: 0,
@@ -84,10 +92,11 @@ const startingCondition = {
   opened: new Set<string>(),
 }
 
-let queue: Thing[] = [startingCondition]
+let pool: Path[] = [startingCondition]
 
-const possibleRoutes: Thing[] = []
-const isMostPressure = (a: Thing, b: Thing) => (a.pressure > b.pressure ? a : b)
+const paths: Path[] = []
+const isMostPressure = (a: Path, b: Path) => (a.pressure > b.pressure ? a : b)
+const generateKey = (p: Path) => `${p.name}-${[...p.opened].sort().join(',')}`
 const overlap = <T>(a: Set<T>, b: Set<T>) => {
   for (const elem of a) {
     if (b.has(elem)) return true
@@ -95,67 +104,64 @@ const overlap = <T>(a: Set<T>, b: Set<T>) => {
   return false
 }
 
-while (queue.length > 0) {
-  const roundItems: Thing[] = []
+while (pool.length > 0) {
+  const roundItems: Path[] = []
 
-  for (const item of queue) {
+  for (const item of pool) {
+    const valve = valves.get(item.name)!
+
     for (const nextName of item.closed) {
       const next = valves.get(nextName)!
-      const distance = next.neighbours[item.name]
+      const distance = valve.neighbours[nextName]
 
       const movesLeft = item.movesLeft - distance - 1
-      const newBest = item.pressure + movesLeft * next.rate
-      const newClosed = new Set(item.closed)
-      const newOpened = new Set(item.opened)
 
+      const newClosed = new Set(item.closed)
       newClosed.delete(nextName)
 
-      if (movesLeft < 0 || newClosed.size === 0) {
+      if (movesLeft <= 0) {
         continue
       }
 
       roundItems.push({
         name: nextName,
-        pressure: newBest,
+        pressure: item.pressure + movesLeft * next.rate,
         movesLeft,
         closed: newClosed,
-        opened: new Set([...newOpened, nextName]),
+        opened: new Set([...item.opened, nextName]),
       })
     }
   }
 
-  const dedupedItems = new Map<string, Thing[]>()
+  const pruned = new Map<string, Path>()
   for (const item of roundItems) {
-    const key = `${item.name}-${[...item.opened].sort().join(',')}`
+    const key = generateKey(item)
 
-    const value = dedupedItems.get(key) || []
-
-    value.push(item)
-    dedupedItems.set(key, value)
+    pruned.set(key, isMostPressure(item, pruned.get(key) ?? item))
   }
 
-  const remaining = Array.from(dedupedItems.values()).map((items) =>
-    items.reduce(isMostPressure)
-  )
-
-  possibleRoutes.push(...remaining)
-  queue = remaining
+  paths.push(...pruned.values())
+  pool = Array.from(pruned.values())
 }
 
-possibleRoutes.sort((a, b) => (a.pressure > b.pressure ? -1 : 1))
+paths.sort((a, b) => (a.pressure > b.pressure ? -1 : 1))
 
-let found: { M: Thing; E: Thing } | null = null
-outer: for (const M of possibleRoutes) {
-  for (const E of possibleRoutes) {
+let found: { M: Path; E: Path } | null = null
+let max = 0
+for (const [i, M] of paths.entries()) {
+  if (M.pressure + paths[i + 1].pressure < max) break
+
+  for (let j = i + 1; j < paths.length; j++) {
+    const E = paths[j]
+    if (M.pressure + E.pressure < max) break
+
     if (!overlap(M.opened, E.opened)) {
-      found = {
-        M,
-        E,
-      }
-      break outer
+      max = M.pressure + E.pressure
+      found = { M, E }
     }
   }
 }
 
 if (found === null) throw new Error('No solution found')
-console.log(found.M.pressure + found.E.pressure)
+console.log(found.M, found.E)
+console.log(max)

@@ -75,7 +75,15 @@ const operableValves = new Set<string>(
     .map((v) => v[0])
 )
 
-type Move = typeof startingCondition
+for (const valve of valves.values()) {
+  for (const n in valve.neighbours) {
+    if (!operableValves.has(n)) {
+      delete valve.neighbours[n]
+    }
+  }
+}
+
+type Path = typeof startingCondition
 const startingCondition = {
   name: 'AA',
   pressure: 0,
@@ -84,62 +92,52 @@ const startingCondition = {
   opened: new Set<string>(),
 }
 
-let queue: Move[] = [startingCondition]
+let pool: Path[] = [startingCondition]
 
-const completedPaths: Move[] = []
-const isMostPressure = (a: Move, b: Move) => (a.pressure > b.pressure ? a : b)
+const paths: Path[] = []
+const isMostPressure = (a: Path, b: Path) => (a.pressure > b.pressure ? a : b)
+const generateKey = (p: Path) => `${p.name}-${[...p.opened].sort().join(',')}`
 
-while (queue.length > 0) {
-  const roundItems: Move[] = []
+while (pool.length > 0) {
+  const roundItems: Path[] = []
 
-  for (const item of queue) {
+  for (const item of pool) {
+    const valve = valves.get(item.name)!
+
     for (const nextName of item.closed) {
       const next = valves.get(nextName)!
-      const distance = next.neighbours[item.name]
+      const distance = valve.neighbours[nextName]
 
       const movesLeft = item.movesLeft - distance - 1
-      const newBest = item.pressure + movesLeft * next.rate
-      const newClosed = new Set(item.closed)
-      const newOpened = new Set(item.opened)
 
+      const newClosed = new Set(item.closed)
       newClosed.delete(nextName)
 
-      const nextMove = {
-        name: nextName,
-        pressure: newBest,
-        movesLeft,
-        closed: newClosed,
-        opened: new Set([...newOpened, nextName]),
-      }
-
-      if (movesLeft < 0 || newClosed.size === 0) {
-        completedPaths.push(nextMove)
+      if (movesLeft <= 0) {
         continue
       }
 
-      roundItems.push(nextMove)
+      roundItems.push({
+        name: nextName,
+        pressure: item.pressure + movesLeft * next.rate,
+        movesLeft,
+        closed: newClosed,
+        opened: new Set([...item.opened, nextName]),
+      })
     }
   }
 
-  const dedupedItems = new Map<string, Move[]>()
+  const pruned = new Map<string, Path>()
   for (const item of roundItems) {
-    const key = `${item.name}-${[...item.opened].sort().join(',')}`
+    const key = generateKey(item)
 
-    const value = dedupedItems.get(key) || []
-
-    value.push(item)
-    dedupedItems.set(key, value)
+    pruned.set(key, isMostPressure(item, pruned.get(key) ?? item))
   }
 
-  const remaining = Array.from(dedupedItems.values()).map((items) =>
-    items.reduce(isMostPressure)
-  )
-
-  // possibleRoutes.push(...remaining)
-  queue = remaining
+  paths.push(...pruned.values())
+  pool = Array.from(pruned.values())
 }
 
-const found = completedPaths.reduce(isMostPressure)
+paths.sort((a, b) => b.pressure - a.pressure)
 
-if (found === null) throw new Error('No solution found')
-console.log(found.pressure)
+console.log(paths[0])
