@@ -147,9 +147,9 @@ const _printBlizzard = (turn: number, player?: Point) => {
 type Expedition = Point & {
   turn: number
 }
-const queue = new PriorityQueue((a: Expedition, b: Expedition) => {
-  const distance = (p: Point) => Math.abs(p.x - end.x) + Math.abs(p.y - end.y)
-  return a.turn - b.turn || distance(a) - distance(b)
+const queue = new PriorityQueue<Expedition>((a: Expedition, b: Expedition) => {
+  const manhattan = (p: Point) => Math.abs(p.x - end.x) + Math.abs(p.y - end.y)
+  return a.turn + manhattan(a) - (b.turn + manhattan(b))
 })
 
 queue.push({ ...start, turn: 0 })
