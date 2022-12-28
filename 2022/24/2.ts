@@ -20,19 +20,15 @@ type Point = {
   x: number
   y: number
 }
-
-let start: Point = {
-  x: startX - 1,
-  y: -1,
-}
-let end: Point = {
-  x: endX - 1,
-  y: grid.length,
-}
-
+type Turn = number
+type Coord = `${number},${number}`
 type Blizzard = Point & {
   direction: [number, number]
 }
+type Expedition = Point & {
+  turn: number
+}
+
 const blizzards = new Map<string, Blizzard>()
 for (const [y, line] of grid.entries()) {
   for (const [x, char] of line.entries()) {
@@ -62,112 +58,106 @@ for (const [y, line] of grid.entries()) {
 
 const key = (p: Point): Coord => `${p.x},${p.y}`
 
-const horizontalBlizzards = new Map<string, Blizzard>()
-const verticalBlizzards = new Map<string, Blizzard>()
+type Blizzards = Map<Coord, Blizzard>
+
+const horizontalBlizzards: Blizzards = new Map()
+const verticalBlizzards: Blizzards = new Map()
 for (const blizzard of blizzards.values()) {
-  if (blizzard.direction[0] === 0) {
+  const [dx] = blizzard.direction
+  if (dx === 0) {
     verticalBlizzards.set(key(blizzard), blizzard)
   } else {
     horizontalBlizzards.set(key(blizzard), blizzard)
   }
 }
 
-const allVerticalBlizzards = new Map<string, Map<string, Blizzard>>()
-for (let i = 0; i < grid.length; i++) {
-  const nextBlizzards = new Map<string, Blizzard>()
+const verticals = new Map<Turn, Blizzards>()
+const height = grid.length
+verticals.set(0, verticalBlizzards)
+for (let i = 1; i < height; i++) {
+  const nextBlizzards: Blizzards = new Map()
   for (const blizzard of verticalBlizzards.values()) {
-    const { x, y } = blizzard
-    const [, dy] = blizzard.direction
-    let nextY = (y + dy * i) % grid.length
-    if (nextY < 0) nextY += grid.length
+    const { x, y, direction } = blizzard
+    const [, dy] = direction
+    const nextY = (y + dy * i + height) % height
 
-    nextBlizzards.set(`${x},${nextY}`, {
+    nextBlizzards.set(key({ x, y: nextY }), {
       ...blizzard,
       y: nextY,
     })
   }
-  allVerticalBlizzards.set(`${i}`, nextBlizzards)
+  verticals.set(i, nextBlizzards)
 }
 
-const allHorizontalBlizzards = new Map<string, Map<string, Blizzard>>()
-allHorizontalBlizzards.set('0', horizontalBlizzards)
-for (let i = 0; i < grid[0].length; i++) {
-  const nextBlizzards = new Map<string, Blizzard>()
+const horizontals = new Map<Turn, Blizzards>()
+const width = grid[0].length
+horizontals.set(0, horizontalBlizzards)
+for (let i = 1; i < width; i++) {
+  const nextBlizzards = new Map<Coord, Blizzard>()
   for (const blizzard of horizontalBlizzards.values()) {
-    const { x, y } = blizzard
-    const [dx] = blizzard.direction
-    let nextX = (x + dx * i) % grid[0].length
-    if (nextX < 0) nextX += grid[0].length
+    const { x, y, direction } = blizzard
+    const [dx] = direction
+    const nextX = (x + dx * i + width) % width
 
-    nextBlizzards.set(`${nextX},${y}`, {
+    nextBlizzards.set(key({ x: nextX, y }), {
       ...blizzard,
       x: nextX,
     })
   }
-  allHorizontalBlizzards.set(`${i}`, nextBlizzards)
+  horizontals.set(i, nextBlizzards)
 }
 
 const getBlizzardLocations = (turn: number) => {
-  const verticalBlizzards = allVerticalBlizzards.get(
-    `${turn % allVerticalBlizzards.size}`
-  )
-  const horizontalBlizzards = allHorizontalBlizzards.get(
-    `${turn % allHorizontalBlizzards.size}`
-  )
-  return { verticalBlizzards, horizontalBlizzards }
+  const vertical = verticals.get(turn % verticals.size)!
+  const horizontal = horizontals.get(turn % horizontals.size)!
+
+  return { vertical, horizontal }
 }
 
 const hasBlizzard = (point: Point, turn: number) => {
-  const { verticalBlizzards, horizontalBlizzards } = getBlizzardLocations(turn)
-  return (
-    verticalBlizzards?.has(key(point)) || horizontalBlizzards?.has(key(point))
-  )
+  const { vertical, horizontal } = getBlizzardLocations(turn)
+  return vertical.has(key(point)) || horizontal.has(key(point))
 }
 
-const _printBlizzard = (turn: number, player?: Point) => {
-  const { verticalBlizzards, horizontalBlizzards } = getBlizzardLocations(turn)
-  const gridCopy = grid.map((l) => l.map((_) => '.'))
-  for (const blizzard of verticalBlizzards?.values() ?? []) {
-    gridCopy[blizzard.y][blizzard.x] = '#'
-  }
-  for (const blizzard of horizontalBlizzards?.values() ?? []) {
-    gridCopy[blizzard.y][blizzard.x] = '#'
-  }
-  if (player && gridCopy[player.y]?.[player.x]) {
-    if (gridCopy[player.y][player.x] === '#') {
-      gridCopy[player.y][player.x] = 'X'
-    } else {
-      gridCopy[player.y][player.x] = 'O'
-    }
+const _print = (turn: number, player?: Point) => {
+  const { vertical, horizontal } = getBlizzardLocations(turn)
+  const printGrid = grid.map((l) => l.map((_) => '.'))
+
+  for (const { x, y } of vertical.values()) printGrid[y][x] = '#'
+  for (const { x, y } of horizontal.values()) printGrid[y][x] = '#'
+
+  if (player && printGrid[player.y]?.[player.x]) {
+    const { x, y } = player
+    printGrid[y][x] = printGrid[y][x] === '#' ? 'X' : 'O'
   }
   console.log('Minute', turn)
-  console.log(gridCopy.map((l) => l.join('')).join('\n'), '\n')
+  console.log(printGrid.map((l) => l.join('')).join('\n'), '\n')
 }
 
-type Expedition = Point & {
-  turn: number
+let start: Point = {
+  x: startX - 1,
+  y: -1,
 }
+let end: Point = {
+  x: endX - 1,
+  y: grid.length,
+}
+
 const queue = new PriorityQueue<Expedition>((a: Expedition, b: Expedition) => {
   const manhattan = (p: Point) => Math.abs(p.x - end.x) + Math.abs(p.y - end.y)
   return a.turn + manhattan(a) - (b.turn + manhattan(b))
 })
 
-queue.push({ ...start, turn: 0 })
-type Turn = number
-type Coord = `${number},${number}`
-let visited = new Map<Turn, Set<Coord>>() // key: turn, value: visited points
+queue.enqueue({ ...start, turn: 0 })
+
+let visited = new Set<`${Turn},${Coord}`>()
 let found = 0
 
 while (!queue.isEmpty()) {
   const current = queue.dequeue()!
 
-  if (visited.has(current.turn)) {
-    const visitedPoints = visited.get(current.turn)!
-    if (visitedPoints.has(key(current))) continue
-    visitedPoints.add(key(current))
-  } else {
-    visited.set(current.turn, new Set([key(current)]))
-  }
+  if (visited.has(`${current.turn},${key(current)}`)) continue
+  visited.add(`${current.turn},${key(current)}`)
 
   const { x, y } = current
   const nextPoints = [
@@ -175,8 +165,9 @@ while (!queue.isEmpty()) {
     { x: x - 1, y },
     { x, y: y + 1 },
     { x, y: y - 1 },
+    { x, y },
   ]
-  let waiting = false
+
   for (const nextPoint of nextPoints) {
     const turn = current.turn + 1
     const next = { ...nextPoint, turn }
@@ -185,7 +176,7 @@ while (!queue.isEmpty()) {
       end = start
       start = tmp
       queue.clear()
-      visited = new Map()
+      visited = new Set()
 
       queue.enqueue(next)
       found++
@@ -195,21 +186,14 @@ while (!queue.isEmpty()) {
       }
       break
     }
-    if (!grid[next.y]?.[next.x]) {
-      if (next.x === start.x && next.y === start.y) queue.enqueue(next)
-
-      continue
-    }
-
-    if (!hasBlizzard(next, turn)) {
+    if (next.x === start.x && next.y === start.y) {
       queue.enqueue(next)
       continue
     }
-    if (waiting || hasBlizzard(current, turn)) {
-      continue
-    }
+    if (!grid[next.y]?.[next.x]) continue
 
-    queue.enqueue({ ...current, turn })
-    waiting = true
+    if (!hasBlizzard(next, turn)) {
+      queue.enqueue(next)
+    }
   }
 }
