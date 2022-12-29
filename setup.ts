@@ -23,7 +23,7 @@ const input = await Deno.readTextFile(
 const lines = input.trimEnd().split('\\n')
 `)
 
-await Deno.mkdir(dir)
+await Deno.mkdir(dir, { recursive: true })
 await Deno.create(`./${dir}/input.txt`)
 await Deno.writeFile(`./${dir}/1.ts`, data)
 await Deno.writeFile(`./${dir}/2.ts`, data)
