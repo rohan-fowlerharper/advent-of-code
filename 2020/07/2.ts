@@ -4,6 +4,8 @@ const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
 )
 
+performance.mark('start')
+
 type Contents = { count: number; name: string }
 const bags = new Map<string, Contents[] | null>()
 input
@@ -24,6 +26,8 @@ input
     bags.set(bag, contents)
   })
 
+performance.mark('parsed')
+
 const contains = (bag: string): number => {
   const contents = bags.get(bag)
   if (!contents) return 0
@@ -34,4 +38,18 @@ const contains = (bag: string): number => {
 
 const answer = contains('shiny gold')
 
+performance.mark('end')
+
 console.log(answer)
+
+console.log(
+  `To parse: ${performance
+    .measure('07.2', 'start', 'parsed')
+    .duration.toFixed(3)}ms`
+)
+
+console.log(
+  `To solve: ${performance
+    .measure('07.2', 'parsed', 'end')
+    .duration.toFixed(3)}ms`
+)

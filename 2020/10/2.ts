@@ -44,12 +44,12 @@ performance.mark('end')
 
 console.log(
   `To parse: ${performance
-    .measure('10.1', 'start', 'parsed')
+    .measure('10.2', 'start', 'parsed')
     .duration.toFixed(3)}ms`
 )
 
 console.log(
   `To solve: ${performance
-    .measure('10.1', 'parsed', 'end')
+    .measure('10.2', 'parsed', 'end')
     .duration.toFixed(3)}ms`
 )

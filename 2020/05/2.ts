@@ -4,7 +4,11 @@ const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
 )
 
+performance.mark('start')
+
 const lines = input.trimEnd().split('\n')
+
+performance.mark('parsed')
 
 const avg = (a: number, b: number) => Math.floor((a + b) / 2)
 
@@ -37,7 +41,20 @@ seatIds.sort((a, b) => a - b)
 
 for (const [i, seatId] of seatIds.entries()) {
   if (seatId + 1 !== seatIds[i + 1]) {
+    performance.mark('end')
     console.log(seatId + 1)
     break
   }
 }
+
+console.log(
+  `To parse: ${performance
+    .measure('05.2', 'start', 'parsed')
+    .duration.toFixed(3)}ms`
+)
+
+console.log(
+  `To solve: ${performance
+    .measure('05.2', 'parsed', 'end')
+    .duration.toFixed(3)}ms`
+)

@@ -37,12 +37,12 @@ console.log(lastNumber)
 
 console.log(
   `To parse: ${performance
-    .measure('15.1', 'start', 'parsed')
+    .measure('15.2', 'start', 'parsed')
     .duration.toFixed(3)}ms`
 )
 
 console.log(
   `To solve: ${performance
-    .measure('15.1', 'parsed', 'end')
+    .measure('15.2', 'parsed', 'end')
     .duration.toFixed(3)}ms`
 )

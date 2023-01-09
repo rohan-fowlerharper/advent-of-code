@@ -47,12 +47,12 @@ console.log(result)
 
 console.log(
   `To parse: ${performance
-    .measure('13.1', 'start', 'parsed')
+    .measure('13.2', 'start', 'parsed')
     .duration.toFixed(3)}ms`
 )
 
 console.log(
   `To solve: ${performance
-    .measure('13.1', 'parsed', 'end')
+    .measure('13.2', 'parsed', 'end')
     .duration.toFixed(3)}ms`
 )

@@ -4,6 +4,8 @@ const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
 )
 
+performance.mark('start')
+
 const lines = input
   .trimEnd()
   .split('\n')
@@ -13,6 +15,8 @@ const lines = input
       .slice(1)
     return { a: Number(a), b: Number(b), letter, password }
   })
+
+performance.mark('parsed')
 
 function xor(a: boolean, b: boolean) {
   return (a ? 1 : 0) ^ (b ? 1 : 0)
@@ -29,4 +33,18 @@ const valid = lines.filter(({ a, b, letter, password }) =>
   isValid(a, b, password, letter)
 )
 
+performance.mark('end')
+
 console.log(valid.length)
+
+console.log(
+  `To parse: ${performance
+    .measure('02.1', 'start', 'parsed')
+    .duration.toFixed(3)}ms`
+)
+
+console.log(
+  `To solve: ${performance
+    .measure('02.1', 'parsed', 'end')
+    .duration.toFixed(3)}ms`
+)

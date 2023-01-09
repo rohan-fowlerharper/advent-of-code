@@ -60,12 +60,12 @@ for (let i = 0; i < lines.length; i++) {
 
 console.log(
   `To parse: ${performance
-    .measure('08.1', 'start', 'parsed')
+    .measure('08.2', 'start', 'parsed')
     .duration.toFixed(3)}ms`
 )
 
 console.log(
   `To solve: ${performance
-    .measure('08.1', 'parsed', 'end')
+    .measure('08.2', 'parsed', 'end')
     .duration.toFixed(3)}ms`
 )

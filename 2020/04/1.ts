@@ -4,7 +4,9 @@ const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
 )
 
-const passports: { [key: string]: string }[] = input
+performance.mark('start')
+
+const passports: Array<{ [key: string]: string }> = input
   .trimEnd()
   .split('\n\n')
   .map((p) => {
@@ -16,10 +18,26 @@ const passports: { [key: string]: string }[] = input
     return Object.fromEntries(fields)
   })
 
+performance.mark('parsed')
+
 const requiredFields = ['byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid']
 
 const valid = passports.filter((p) => {
   return requiredFields.every((f) => p[f])
 })
 
+performance.mark('end')
+
 console.log(valid.length)
+
+console.log(
+  `To parse: ${performance
+    .measure('04.1', 'start', 'parsed')
+    .duration.toFixed(3)}ms`
+)
+
+console.log(
+  `To solve: ${performance
+    .measure('04.1', 'parsed', 'end')
+    .duration.toFixed(3)}ms`
+)
