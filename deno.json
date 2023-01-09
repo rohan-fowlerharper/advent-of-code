@@ -3,6 +3,7 @@
     "setup": "deno run --allow-write --allow-read setup.ts",
     "out": "deno run --allow-run out.ts",
     "o": "deno run --allow-run out.ts",
-    "watch": "deno run --allow-read --watch"
+    "watch": "deno run --allow-read --watch",
+    "bench": "deno run --allow-hrtime --allow-read"
   }
 }
