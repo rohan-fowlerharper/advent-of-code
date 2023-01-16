@@ -4,10 +4,14 @@ const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
 )
 
+performance.mark('start')
+
 const startingPositions = input
   .trimEnd()
   .split('\n')
   .map((l) => l.split(''))
+
+performance.mark('parsed')
 
 const CYCLES = 6
 
@@ -110,4 +114,18 @@ for (let cycle = 0; cycle < CYCLES; cycle++) {
 
 const result = grid.flat(3).filter((c) => c === '#').length
 
+performance.mark('end')
+
 console.log(result)
+
+console.log(
+  `To parse: ${performance
+    .measure('18.1', 'start', 'parsed')
+    .duration.toFixed(3)}ms`
+)
+
+console.log(
+  `To solve: ${performance
+    .measure('18.1', 'parsed', 'end')
+    .duration.toFixed(3)}ms`
+)

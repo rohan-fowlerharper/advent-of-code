@@ -58,12 +58,12 @@ console.log(result)
 
 console.log(
   `To parse: ${performance
-    .measure('16.2', 'start', 'parsed')
+    .measure('18.2', 'start', 'parsed')
     .duration.toFixed(3)}ms`
 )
 
 console.log(
   `To solve: ${performance
-    .measure('16.2', 'parsed', 'end')
+    .measure('18.2', 'parsed', 'end')
     .duration.toFixed(3)}ms`
 )

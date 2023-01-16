@@ -4,18 +4,20 @@ const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
 )
 
+performance.mark('start')
+
 const startingPositions = input
   .trimEnd()
   .split('\n')
   .map((l) => l.split(''))
+
+performance.mark('parsed')
 
 const CYCLES = 6
 
 const maxX = startingPositions[0].length + CYCLES * 2
 const maxY = startingPositions.length + CYCLES * 2
 const maxZ = CYCLES * 2 + 1
-
-console.log(maxX, maxY, maxZ)
 
 let grid = Array.from({ length: maxZ }, () =>
   Array.from({ length: maxY }, () => Array.from({ length: maxX }, () => '.'))
@@ -26,8 +28,6 @@ const startingX =
 const startingY =
   Math.floor(maxY / 2) - Math.floor(startingPositions.length / 2)
 const startingZ = Math.floor(maxZ / 2)
-
-console.log(startingX, startingY, startingZ)
 
 for (let y = 0; y < startingPositions.length; y++) {
   for (let x = 0; x < startingPositions[0].length; x++) {
@@ -72,7 +72,7 @@ const getNewGrid = () => {
   )
 }
 
-const printGrid = (grid: string[][][], cycle: number) => {
+const _printGrid = (grid: string[][][], cycle: number) => {
   console.log('Cycle', cycle)
   for (let z = 0; z < maxZ; z++) {
     if (grid[z].flat().every((c) => c === '.')) continue
@@ -86,7 +86,6 @@ const printGrid = (grid: string[][][], cycle: number) => {
 
 for (let cycle = 0; cycle < CYCLES; cycle++) {
   const newGrid = getNewGrid()
-  printGrid(grid, cycle)
 
   for (let z = 0; z < maxZ; z++) {
     for (let y = 0; y < maxY; y++) {
@@ -102,4 +101,18 @@ for (let cycle = 0; cycle < CYCLES; cycle++) {
 
 const result = grid.flat(2).filter((c) => c === '#').length
 
+performance.mark('end')
+
 console.log(result)
+
+console.log(
+  `To parse: ${performance
+    .measure('18.1', 'start', 'parsed')
+    .duration.toFixed(3)}ms`
+)
+
+console.log(
+  `To solve: ${performance
+    .measure('18.1', 'parsed', 'end')
+    .duration.toFixed(3)}ms`
+)
