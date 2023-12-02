@@ -7,6 +7,9 @@ const input = await Deno.readTextFile(
 const lines = input
   .trimEnd()
   .split('\n')
-  .filter((l) => l.length < 9 && l.length >= 8)
+  .map((l) => l.split('').filter(Number))
+  .map((l) => l[0] + l.at(-1))
+  .map(Number)
+  .reduce((a, b) => a + b, 0)
 
 console.table(lines)
