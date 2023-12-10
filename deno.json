@@ -5,5 +5,8 @@
     "o": "deno run --allow-run out.ts",
     "watch": "deno run --allow-read --watch",
     "bench": "deno run --allow-hrtime --allow-read"
+  },
+  "imports": {
+    "utils": "./utils/index.ts"
   }
 }

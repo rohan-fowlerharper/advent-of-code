@@ -1,4 +1,5 @@
 import * as p from 'https://deno.land/std@0.165.0/path/mod.ts'
+import { CountedSet } from 'utils'
 
 const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
@@ -58,17 +59,17 @@ const isJoker = (card: string) => card === 'J'
 
 const getHandType = (hand: Hand): HandType => {
   let jokers = 0
-  const counts = new Map<string, number>()
+  const counts = new CountedSet<string>()
   hand.forEach((card) => {
     if (isJoker(card)) {
       jokers++
     } else {
-      counts.set(card, (counts.get(card) || 0) + 1)
+      counts.add(card)
     }
   })
 
-  const max = Math.max(...counts.values(), 0) + jokers
-  const min = Math.min(...counts.values())
+  const max = Math.max(...counts.values, 0) + jokers
+  const min = Math.min(...counts.values)
 
   if (max === 5) return 'FIVE_OF_A_KIND'
   if (max === 4) return 'FOUR_OF_A_KIND'
@@ -105,8 +106,8 @@ const sortedHands = lines
   })
   .toReversed()
 
-const score = sortedHands.reduce((a, b, i) => {
-  return a + b.bid * (i + 1)
+const score = sortedHands.reduce((sum, hand, rank) => {
+  return sum + hand.bid * (rank + 1)
 }, 0)
 
 console.log(score)

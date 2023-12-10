@@ -1,4 +1,5 @@
 import * as p from 'https://deno.land/std@0.165.0/path/mod.ts'
+import { lcm } from '../../utils/math.ts'
 
 const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
@@ -41,20 +42,7 @@ const distancesToEndWithZ = localesEndingInA.map((locale) => {
   return distance
 })
 
-const distanceAtConvergence = lcmArray(distancesToEndWithZ)
+// LCM works because XXA - XXZ is the same period as XXZ - XXZ
+const distanceAtConvergence = lcm(...distancesToEndWithZ)
 
 console.log(distanceAtConvergence)
-
-// TODO: add these to a utils file
-function gcd(a: number, b: number): number {
-  if (b === 0) return a
-  return gcd(b, a % b)
-}
-
-function lcm(a: number, b: number): number {
-  return (a * b) / gcd(a, b)
-}
-
-function lcmArray(numbers: number[]): number {
-  return numbers.reduce((a, b) => lcm(a, b))
-}
