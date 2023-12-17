@@ -1,5 +1,5 @@
 import * as p from 'https://deno.land/std@0.165.0/path/mod.ts'
-import TinyQueue from 'npm:tinyqueue'
+import { PriorityQueue } from 'utils'
 
 const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
@@ -23,7 +23,7 @@ type Point = {
   priority: number
 }
 
-const tq = new TinyQueue<Point>(
+const pq = new PriorityQueue<Point>(
   [
     {
       x: 0,
@@ -43,7 +43,7 @@ const tq = new TinyQueue<Point>(
     },
   ],
   (a: Point, b: Point) => a.priority - b.priority
-) as Point[]
+)
 const visited = new Map<
   string,
   { heatLoss: number; timesMovedStraight: number }
@@ -90,37 +90,34 @@ const getOppositeDirection = (dir: Direction): Direction => {
   }
 }
 
-const completedPaths = new Set<number>()
+// const completedPaths = new Set<number>()
+let firstPath: number
 
-while (tq.length > 0) {
-  const c = tq.pop()!
+while (pq.length > 0) {
+  const c = pq.pop()!
+
+  if (isAtExit(c.x, c.y)) {
+    if (c.timesMovedStraight >= N_MOVES_STRAIGHT_LINE_MIN) {
+      firstPath = c.heatLoss
+      break
+    }
+
+    continue
+  }
 
   const key = `${c.x},${c.y},${c.timesMovedStraight},${c.direction}`
   if (visited.has(key)) {
-    const { heatLoss, timesMovedStraight } = visited.get(key)!
-    if (c.timesMovedStraight === timesMovedStraight) {
-      if (c.heatLoss >= heatLoss) {
-        continue
-      }
-    }
-    if (c.heatLoss === heatLoss) {
-      if (c.timesMovedStraight >= timesMovedStraight) {
-        continue
-      }
-    }
-  }
-
-  if (isOutOfBounds(c.x, c.y)) {
-    continue
-  }
-
-  if (isAtExit(c.x, c.y)) {
-    // completedPaths.add(c.heatLoss)
-    if (c.timesMovedStraight >= N_MOVES_STRAIGHT_LINE_MIN) {
-      completedPaths.add(c.heatLoss)
+    const v = visited.get(key)!
+    if (c.heatLoss > v.heatLoss) {
+      continue
     }
 
-    continue
+    if (
+      c.heatLoss === v.heatLoss &&
+      c.timesMovedStraight >= v.timesMovedStraight
+    ) {
+      continue
+    }
   }
 
   visited.set(key, {
@@ -128,32 +125,35 @@ while (tq.length > 0) {
     timesMovedStraight: c.timesMovedStraight,
   })
 
-  for (const dir of dirs) {
-    if (dir === getOppositeDirection(c.direction)) continue
-    const [dx, dy] = getDiff(dir)
+  for (const nextDir of dirs) {
+    if (nextDir === getOppositeDirection(c.direction)) continue
+    const [dx, dy] = getDiff(nextDir)
     const nextX = c.x + dx
     const nextY = c.y + dy
     const nextTimesMovedStraight =
-      dir === c.direction ? c.timesMovedStraight + 1 : 1
-    if (nextTimesMovedStraight > N_MOVES_STRAIGHT_LINE) continue
+      nextDir === c.direction ? c.timesMovedStraight + 1 : 1
 
+    if (isOutOfBounds(nextX, nextY)) {
+      continue
+    }
+    if (nextTimesMovedStraight > N_MOVES_STRAIGHT_LINE) continue
     if (
       c.timesMovedStraight < N_MOVES_STRAIGHT_LINE_MIN &&
-      dir !== c.direction
+      nextDir !== c.direction
     ) {
       continue
     }
 
     const nextHeatLoss = get(nextX, nextY)! + c.heatLoss
 
-    tq.push({
+    pq.push({
       x: nextX,
       y: nextY,
       timesMovedStraight: nextTimesMovedStraight,
       heatLoss: nextHeatLoss,
-      direction: dir,
+      direction: nextDir,
       priority:
-        nextHeatLoss +
+        nextHeatLoss * 2 +
         nextTimesMovedStraight +
         Math.abs(nextX - BOUNDS.maxX) +
         Math.abs(nextY - BOUNDS.maxY),
@@ -161,4 +161,4 @@ while (tq.length > 0) {
   }
 }
 
-console.log(Math.min(...Array.from(completedPaths)))
+console.log(firstPath!)
