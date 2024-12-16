@@ -12,7 +12,7 @@ const dirs: Point[] = [
   { x: 0, y: -1 },
 ]
 const key = (p: Point) => `${p.x},${p.y}`
-const pKey = (s: StackItem) => `${s.x},${s.y},${s.dir.x},${s.dir.y}`
+const s_key = (s: StackItem) => `${s.x},${s.y},${s.dir.x},${s.dir.y}`
 
 const getNextPoints = (dir: Point) => {
   const idx = dirs.findIndex((d) => d === dir)
@@ -61,13 +61,17 @@ const queue: StackItem[] = [
     tiles: new Set<string>([key(start)]),
   },
 ]
-const visited = new Map<string, number>()
-const solutions: { score: number; tiles: Set<string> }[] = []
+
+const visited = new Map<string, StackItem>()
+
+let solution: StackItem | null = null
 while (queue.length) {
   const c = queue.shift()!
 
   if (key(c) === key(end)) {
-    solutions.push(c)
+    if (c.score < (solution?.score ?? Infinity)) {
+      solution = c
+    }
     continue
   }
 
@@ -81,15 +85,24 @@ while (queue.length) {
     }
     next.tiles.add(key({ x: next.x, y: next.y }))
 
+    if (next.score > (solution?.score ?? Infinity)) {
+      continue
+    }
+
     if (walls.has(key(next))) {
       continue
     }
 
-    if (visited.has(pKey(next)) && visited.get(pKey(next))! < next.score) {
+    const seen = visited.get(s_key(next))
+    if (seen && seen.score < next.score) {
+      continue
+    }
+    if (seen && seen.score === next.score) {
+      seen.tiles = seen.tiles.union(next.tiles)
       continue
     }
 
-    visited.set(pKey(next), next.score)
+    visited.set(s_key(next), next)
     queue.push(next)
   }
 }
@@ -104,18 +117,4 @@ function _printGrid(s: StackItem) {
   console.log(g.map((r) => r.join('')).join('\n'))
 }
 
-const minScore = solutions.find(
-  (s) => s.score === Math.min(...solutions.map((s) => s.score))
-)
-
-const solutionsWithMinScore = solutions.filter(
-  (s) => s.score === minScore?.score
-)
-
-const allTilesOnMinScorePaths = new Set<string>()
-
-solutionsWithMinScore.forEach((s) => {
-  s.tiles.forEach((t) => allTilesOnMinScorePaths.add(t))
-})
-
-console.log(allTilesOnMinScorePaths.size)
+console.log(solution!.tiles.size)

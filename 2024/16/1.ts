@@ -15,7 +15,7 @@ const dirs: Point[] = [
 ]
 
 const key = (p: Point) => `${p.x},${p.y}`
-const sKey = (s: StackItem) => `${s.x},${s.y},${s.dir.x},${s.dir.y}`
+const s_key = (s: StackItem) => `${s.x},${s.y},${s.dir.x},${s.dir.y}`
 
 const getNextPoints = (dir: Point) => {
   const idx = dirs.findIndex((d) => d === dir)
@@ -63,12 +63,14 @@ const queue: StackItem[] = [
 ]
 const visited = new Map<string, number>()
 
-const scores: number[] = []
+let minScore = Infinity
 while (queue.length) {
   const c = queue.shift()!
 
   if (key(c) === key(end)) {
-    scores.push(c.score)
+    if (c.score < minScore) {
+      minScore = c.score
+    }
     continue
   }
 
@@ -80,15 +82,20 @@ while (queue.length) {
       score: c.score + cost,
     }
 
+    if (next.score > minScore) {
+      continue
+    }
+
     if (walls.has(key(next))) {
       continue
     }
 
-    if (visited.has(sKey(next)) && visited.get(sKey(next))! <= next.score) {
+    const seen = visited.get(s_key(next))
+    if (seen && seen <= next.score) {
       continue
     }
 
-    visited.set(sKey(next), next.score)
+    visited.set(s_key(next), next.score)
     queue.push(next)
   }
 }
@@ -99,4 +106,4 @@ function _printGrid(s: StackItem) {
   console.log(g.map((r) => r.join('')).join('\n'))
 }
 
-console.log(Math.min(...scores))
+console.log(minScore)
