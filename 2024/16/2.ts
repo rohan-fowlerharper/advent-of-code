@@ -1,4 +1,5 @@
 import * as p from 'https://deno.land/std@0.165.0/path/mod.ts'
+import { PriorityQueue } from '../../utils/priority-queue.ts'
 
 const input = await Deno.readTextFile(
   p.fromFileUrl(import.meta.resolve('./input.txt'))
@@ -52,21 +53,24 @@ for (const [y, row] of grid.entries()) {
 
 type StackItem = Point & { dir: Point; score: number; tiles: Set<string> }
 
-const queue: StackItem[] = [
-  {
-    x: start.x,
-    y: start.y,
-    dir: dirs[0],
-    score: 0,
-    tiles: new Set<string>([key(start)]),
-  },
-]
+const queue = new PriorityQueue<StackItem>(
+  [
+    {
+      x: start.x,
+      y: start.y,
+      dir: dirs[0],
+      score: 0,
+      tiles: new Set<string>([key(start)]),
+    },
+  ],
+  (a, b) => a.score - b.score
+)
 
 const visited = new Map<string, StackItem>()
 
 let solution: StackItem | null = null
 while (queue.length) {
-  const c = queue.shift()!
+  const c = queue.pop()!
 
   if (key(c) === key(end)) {
     if (c.score < (solution?.score ?? Infinity)) {
@@ -83,7 +87,11 @@ while (queue.length) {
       score: c.score + cost,
       tiles: new Set<string>(c.tiles),
     }
-    next.tiles.add(key({ x: next.x, y: next.y }))
+    if (next.tiles.has(key(next))) {
+      continue
+    } else {
+      next.tiles.add(key(next))
+    }
 
     if (next.score > (solution?.score ?? Infinity)) {
       continue
@@ -116,5 +124,4 @@ function _printGrid(s: StackItem) {
   })
   console.log(g.map((r) => r.join('')).join('\n'))
 }
-
-console.log(solution!.tiles.size)
+console.log(solution?.tiles.size)
