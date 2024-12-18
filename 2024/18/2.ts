@@ -33,27 +33,25 @@ for (let i = 0; i < 1024; i++) {
   walls.add(lines[i])
 }
 
-outer: for (let i = 1024; i <= 3450; i++) {
-  walls.add(lines[i])
+const start: Point = { x: 0, y: 0 }
+const end: Point = { x: MAX_X, y: MAX_Y }
 
-  const start: Point = { x: 0, y: 0 }
-  const end: Point = { x: MAX_X, y: MAX_Y }
-
-  const queue = new PriorityQueue(
+function canReachEnd(walls: Set<string>): boolean {
+  const q = new PriorityQueue(
     [{ ...start }],
     (a, b) => manhattan(a, end) - manhattan(b, end)
   )
   const visited = new Set<string>(key(start))
 
-  while (queue.length) {
-    const c = queue.pop()!
+  while (q.length) {
+    const c = q.pop()!
 
     if (c.x === end.x && c.y === end.y) {
-      continue outer
+      return true
     }
 
     for (const d of dirs) {
-      const next: StackItem = {
+      const next: Point = {
         x: c.x + d.x,
         y: c.y + d.y,
       }
@@ -63,10 +61,26 @@ outer: for (let i = 1024; i <= 3450; i++) {
       }
 
       visited.add(k)
-      queue.push(next)
+      q.push(next)
     }
   }
-
-  console.log(i, lines[i])
-  break outer
+  return false
 }
+
+const createWalls = (end: number) => new Set<string>(lines.slice(0, end))
+
+let left = 1024
+let right = lines.length
+
+while (left <= right) {
+  const mid = Math.floor((left + right) / 2)
+  const walls = createWalls(mid)
+
+  if (canReachEnd(walls)) {
+    left = mid + 1
+  } else {
+    right = mid - 1
+  }
+}
+
+console.log(lines[right])
